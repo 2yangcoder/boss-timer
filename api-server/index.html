@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🔥 飞扬计时器 - 多人版</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    }
+    
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --light: #f8fafc;
+      --dark: #1e293b;
+      --gray: #64748b;
+      --light-gray: #e2e8f0;
+      --card-bg: #ffffff;
+      --shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 4px 6px -2px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e6f3ff 100%);
+      color: var(--dark);
+      line-height: 1.4;
+      padding: 12px;
+      min-height: 100vh;
+      font-size: 13px;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 16px;
+      padding: 12px 0;
+    }
+    
+    .header h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: linear-gradient(45deg, var(--primary), #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 4px;
+    }
+    
+    .status-bar {
+      background: var(--card-bg);
+      padding: 8px 16px;
+      border-radius: 12px;
+      text-align: center;
+      margin: 12px 0;
+      box-shadow: var(--shadow);
+      font-weight: 600;
+      color: var(--primary-dark);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .api-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s infinite;
+    }
+    
+    .status-indicator.offline {
+      background: var(--danger);
+    }
+    
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    
+    .tab-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: var(--light);
+      color: var(--gray);
+    }
+    
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .tab-btn:hover:not(.active) {
+      background: var(--light-gray);
+    }
+    
+    .content-section {
+      display: none;
+    }
+    
+    .content-section.active {
+      display: block;
+    }
+    
+    .boss-list {
+      background: var(--card-bg);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .list-header {
+      padding: 12px 16px;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      font-size: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .list-title {
+      flex: 1;
+    }
+    
+    .screenshot-btn {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-left: 12px;
+    }
+    
+    .screenshot-btn:hover {
+      background: #059669;
+      transform: translateY(-1px);
+    }
+    
+    .boss-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--light-gray);
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .boss-item:last-child {
+      border-bottom: none;
+    }
+    
+    .boss-info {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    
+    .boss-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .boss-category {
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary-dark);
+    }
+    
+    .boss-category.业火 {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+    }
+    
+    .boss-category.海底 {
+      background: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+    }
+    
+    .boss-name-config {
+      font-weight: 600;
+      color: var(--dark);
+      font-size: 1rem;
+    }
+    
+    .last-kill {
+      font-size: 0.8rem;
+      color: var(--warning);
+    }
+    
+    .accuracy-indicator {
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 1px 4px;
+      border-radius: 3px;
+      margin-left: 4px;
+    }
+    
+    .accuracy-estimate {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+    }
+    
+    .accuracy-accurate {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--success);
+    }
+    
+    .refresh-countdown {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      text-align: right;
+      min-width: 100px;
+    }
+    
+    .refresh-time {
+      font-size: 0.85rem;
+      color: var(--success);
+      font-weight: 600;
+    }
+    
+    .countdown {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+    
+    .countdown.warning {
+      color: var(--danger);
+      animation: pulse 2s infinite;
+    }
+    
+    .countdown.expired {
+      color: var(--danger);
+    }
+    
+    .countdown.unknown {
+      color: var(--gray);
+    }
+    
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--gray);
+    }
+    
+    .empty-state h3 {
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+      color: var(--dark);
+    }
+    
+    /* 比武计时器样式 */
+    .combat-timer {
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 16px;
+    }
+    
+    .combat-display {
+      font-size: 3rem;
+      font-weight: 800;
+      margin: 20px 0;
+      color: var(--primary-dark);
+      font-family: monospace;
+    }
+    
+    .combat-controls {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    /* 手机端优化 */
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 1.4rem;
+      }
+      
+      .tabs {
+        gap: 4px;
+      }
+      
+      .tab-btn {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+      }
+      
+      .boss-item {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      
+      .refresh-countdown {
+        text-align: left;
+        min-width: auto;
+      }
+      
+      .actions {
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+      }
+      
+      .btn {
+        width: auto;
+        padding: 4px 10px;
+        font-size: 0.8rem;
+      }
+      
+      .combat-display {
+        font-size: 2.5rem;
+      }
+      
+      .list-header {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      body {
+        padding: 8px;
+        font-size: 12px;
+      }
+      
+      .header h1 {
+        font-size: 1.3rem;
+      }
+      
+      .boss-item {
+        padding: 10px 12px;
+      }
+      
+      .countdown {
+        font-size: 0.95rem;
+      }
+      
+      .actions {
+        flex-wrap: wrap;
+      }
+      
+      .boss-name-config {
+        font-size: 0.95rem;
+      }
+      
+      .refresh-time {
+        font-size: 0.8rem;
+      }
+      
+      .combat-display {
+        font-size: 2rem;
+      }
+      
+      .combat-controls {
+        gap: 8px;
+      }
+    }
+    
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 70px;
+      text-align: center;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+    
+    .btn-warning {
+      background: var(--warning);
+      color: white;
+    }
+    
+    .btn-warning:hover {
+      background: #d97706;
+      transform: translateY(-1px);
+    }
+    
+    .btn-combat {
+      padding: 12px 24px;
+      font-size: 1rem;
+      min-width: 100px;
+    }
+    
+    .btn-combat-start {
+      background: var(--success);
+      color: white;
+    }
+    
+    .btn-combat-start:hover {
+      background: #059669;
+    }
+    
+    .btn-combat-reset {
+      background: var(--danger);
+      color: white;
+    }
+    
+    .btn-combat-reset:hover {
+      background: #dc2626;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    
+    .modal-content {
+      background-color: var(--card-bg);
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 450px;
+      box-shadow: var(--shadow-lg);
+      font-size: 13px;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--dark);
+    }
+    
+    .close {
+      color: var(--gray);
+      font-size: 1.3rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    
+    .close:hover {
+      color: var(--dark);
+    }
+    
+    .modal-body {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: var(--dark);
+      font-size: 0.9rem;
+    }
+    
+    .form-control {
+      width: 100%;
+      padding: 8px 12px;
+      border: 2px solid var(--light-gray);
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      background: var(--light);
+    }
+    
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+    }
+    
+    .radio-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .radio-option input {
+      margin: 0;
+    }
+    
+    .btn-success {
+      background: var(--success);
+      color: white;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-success:hover {
+      background: #059669;
+      transform: translateY(-1px);
+    }
+    
+    /* 隐藏的文本区域用于复制 */
+    #copyTextarea {
+      position: absolute;
+      left: -9999px;
+      top: -9999px;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>飞扬计时器 - 多人版</h1>
+    </div>
+    
+    <div class="status-bar">
+      <div id="currentTime">当前时间：加载中...</div>
+      <div class="api-status">
+        <span id="apiStatusText">API连接中...</span>
+        <div class="status-indicator" id="statusIndicator"></div>
+      </div>
+    </div>
+    
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="boss">Boss计时器</button>
+      <button class="tab-btn" data-tab="combat">比武计时器</button>
+    </div>
+    
+    <!-- 隐藏的文本区域用于复制 -->
+    <textarea id="copyTextarea"></textarea>
+    
+    <!-- Boss计时器内容 -->
+    <div id="bossSection" class="content-section active">
+      <div class="boss-list">
+        <div class="list-header">
+          <div class="list-title">Boss 列表 - 多人共享</div>
+          <div>
+            <button class="screenshot-btn" onclick="copyBossList()">复制列表</button>
+            <button class="btn btn-primary" onclick="resetAllBosses()" style="margin-left: 8px;">重置所有</button>
+          </div>
+        </div>
+        <div id="bossListContent">
+          <div class="empty-state">
+            <h3>正在加载 Boss 数据...</h3>
+            <p>从服务器获取最新击杀时间</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 比武计时器内容 -->
+    <div id="combatSection" class="content-section">
+      <div class="combat-timer">
+        <div class="combat-display" id="combatTimerDisplay">10:00</div>
+        <div class="combat-controls">
+          <button class="btn btn-combat btn-combat-start" onclick="startCombatTimer()">开始</button>
+          <button class="btn btn-combat btn-combat-reset" onclick="resetCombatTimer()">重置</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="timeModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">手动记录击杀时间</div>
+        <span class="close" onclick="closeModal()">&times;</span>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="modalDateTime">时间</label>
+          <input type="datetime-local" id="modalDateTime" class="form-control" />
+        </div>
+        <div class="form-group">
+          <label>时间精度</label>
+          <div class="radio-group">
+            <div class="radio-option">
+              <input type="radio" id="modalAccuracyAccurate" name="modalAccuracy" value="accurate" checked>
+              <label for="modalAccuracyAccurate">准</label>
+            </div>
+            <div class="radio-option">
+              <input type="radio" id="modalAccuracyEstimate" name="modalAccuracy" value="estimate">
+              <label for="modalAccuracyEstimate">估</label>
+            </div>
+          </div>
+        </div>
+        <button class="btn-success" onclick="saveModalTime()">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // API配置
+    const API_BASE = window.location.origin + '/api';
+    
+    // Boss数据
+    let bosses = [];
+    let currentEditingBossId = null;
+    let isOnline = false;
+
+    // 比武计时器变量
+    let combatTimerInterval = null;
+    let combatTimeLeft = 10 * 60; // 10分钟 = 600秒
+
+    // API调用函数
+    async function fetchBosses() {
+      try {
+        const response = await fetch(`${API_BASE}/bosses`);
+        if (response.ok) {
+          bosses = await response.json();
+          updateApiStatus(true);
+          return true;
+        }
+      } catch (error) {
+        console.error('获取Boss数据失败:', error);
+      }
+      updateApiStatus(false);
+      return false;
+    }
+
+    async function recordKill(id, time = null, accuracy = 'accurate') {
+      try {
+        const response = await fetch(`${API_BASE}/bosses/${id}/kill`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ time, accuracy })
+        });
+        
+        if (response.ok) {
+          await fetchBosses();
+          return true;
+        }
+      } catch (error) {
+        console.error('记录击杀失败:', error);
+      }
+      return false;
+    }
+
+    async function resetAllBosses() {
+      if (!confirm('确定要重置所有Boss的击杀时间吗？')) return;
+      
+      try {
+        const response = await fetch(`${API_BASE}/bosses/reset`, {
+          method: 'POST'
+        });
+        
+        if (response.ok) {
+          await fetchBosses();
+          alert('所有Boss数据已重置');
+        }
+      } catch (error) {
+        console.error('重置失败:', error);
+        alert('重置失败，请检查网络连接');
+      }
+    }
+
+    function updateApiStatus(online) {
+      isOnline = online;
+      const statusText = document.getElementById('apiStatusText');
+      const indicator = document.getElementById('statusIndicator');
+      
+      if (online) {
+        statusText.textContent = '已连接';
+        indicator.className = 'status-indicator';
+      } else {
+        statusText.textContent = '离线模式';
+        indicator.className = 'status-indicator offline';
+      }
+    }
+
+    // 标签切换功能
+    document.querySelectorAll('.tab-btn').forEach(button => {
+      button.addEventListener('click', () => {
+        const tabId = button.getAttribute('data-tab');
+        
+        // 更新按钮状态
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        button.classList.add('active');
+        
+        // 显示对应内容
+        document.querySelectorAll('.content-section').forEach(section => {
+          section.classList.remove('active');
+        });
+        document.getElementById(`${tabId}Section`).classList.add('active');
+      });
+    });
+
+    // 比武计时器功能
+    function startCombatTimer() {
+      if (combatTimerInterval) return; // 已经在运行
+      
+      combatTimerInterval = setInterval(() => {
+        combatTimeLeft--;
+        updateCombatTimerDisplay();
+        
+        if (combatTimeLeft <= 0) {
+          clearInterval(combatTimerInterval);
+          combatTimerInterval = null;
+        }
+      }, 1000);
+    }
+
+    function resetCombatTimer() {
+      clearInterval(combatTimerInterval);
+      combatTimerInterval = null;
+      combatTimeLeft = 10 * 60;
+      updateCombatTimerDisplay();
+    }
+
+    function updateCombatTimerDisplay() {
+      const minutes = Math.floor(combatTimeLeft / 60);
+      const seconds = combatTimeLeft % 60;
+      document.getElementById('combatTimerDisplay').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // 复制 Boss 列表功能
+    function copyBossList() {
+      try {
+        const textContent = getFormattedBossList();
+        const textarea = document.getElementById('copyTextarea');
+        textarea.value = textContent;
+        textarea.select();
+        textarea.setSelectionRange(0, 99999);
+        
+        const success = document.execCommand('copy');
+        if (success) {
+          const originalBtn = document.querySelector('.screenshot-btn');
+          const originalText = originalBtn.textContent;
+          originalBtn.textContent = '已复制！';
+          originalBtn.style.background = '#059669';
+          setTimeout(() => {
+            originalBtn.textContent = originalText;
+            originalBtn.style.background = '#10b981';
+          }, 2000);
+        } else {
+          alert('复制失败，请手动选择内容进行复制');
+        }
+      } catch (error) {
+        console.error('复制失败:', error);
+        alert('复制失败，请手动选择内容进行复制');
+      }
+    }
+
+    // 获取指定格式的 Boss 列表
+    function getFormattedBossList() {
+      let text = "BOSS刷新时间\n\n";
+      
+      const bossWithRefreshTime = bosses.map(boss => {
+        if (!boss.lastKillTime) return null;
+        
+        const lastKill = new Date(boss.lastKillTime);
+        const intervalMs = boss.interval * 60 * 60 * 1000;
+        let refreshTime;
+        
+        if (boss.delay === 0) {
+          refreshTime = new Date(lastKill.getTime() + intervalMs);
+        } else {
+          const delayMs = boss.delay * 60 * 1000;
+          refreshTime = new Date(lastKill.getTime() + intervalMs - delayMs);
+        }
+        
+        const hours = refreshTime.getHours().toString().padStart(2, '0');
+        const minutes = refreshTime.getMinutes().toString().padStart(2, '0');
+        const timeStr = hours + minutes;
+        
+        return {
+          category: boss.category,
+          name: boss.name,
+          timeStr: timeStr,
+          refreshTime: refreshTime
+        };
+      }).filter(item => item !== null);
+      
+      bossWithRefreshTime.sort((a, b) => a.refreshTime - b.refreshTime);
+      
+      bossWithRefreshTime.forEach(boss => {
+        text += `（${boss.category}）${boss.name}，${boss.timeStr}\n`;
+      });
+      
+      return text;
+    }
+
+    // 计算刷新时间
+    function calculateRefreshTime(boss) {
+      if (!boss.lastKillTime) {
+        return { refreshTime: null, hasRange: false };
+      }
+      
+      const lastKill = new Date(boss.lastKillTime);
+      const intervalMs = boss.interval * 60 * 60 * 1000;
+      
+      if (boss.delay === 0) {
+        const refreshTime = new Date(lastKill.getTime() + intervalMs);
+        return { refreshTime, hasRange: false };
+      } else {
+        const delayMs = boss.delay * 60 * 1000;
+        const earliest = new Date(lastKill.getTime() + intervalMs - delayMs);
+        const latest = new Date(lastKill.getTime() + intervalMs + delayMs);
+        return { earliest, latest, hasRange: true };
+      }
+    }
+
+    // 获取当前倒计时状态
+    function getCurrentCountdownStatus(boss) {
+      if (!boss.lastKillTime) {
+        return { countdown: '未击杀', status: 'unknown', nextRefresh: null };
+      }
+      
+      const refreshInfo = calculateRefreshTime(boss);
+      const now = new Date();
+      
+      if (!refreshInfo.hasRange) {
+        if (now < refreshInfo.refreshTime) {
+          const diff = refreshInfo.refreshTime - now;
+          const totalSeconds = Math.floor(diff / 1000);
+          const minutes = Math.floor(totalSeconds / 60);
+          const status = minutes <= 20 ? 'warning' : 'waiting';
+          return { 
+            countdown: formatCountdownSimple(refreshInfo.refreshTime), 
+            status: status, 
+            nextRefresh: refreshInfo.refreshTime 
+          };
+        } else if (now.getTime() === refreshInfo.refreshTime.getTime()) {
+          return { 
+            countdown: '刷新中', 
+            status: 'warning', 
+            nextRefresh: refreshInfo.refreshTime 
+          };
+        } else {
+          return { 
+            countdown: '已过期', 
+            status: 'expired', 
+            nextRefresh: refreshInfo.refreshTime 
+          };
+        }
+      } else {
+        if (now < refreshInfo.earliest) {
+          const diff = refreshInfo.earliest - now;
+          const totalSeconds = Math.floor(diff / 1000);
+          const minutes = Math.floor(totalSeconds / 60);
+          const status = minutes <= 20 ? 'warning' : 'waiting';
+          return { 
+            countdown: formatCountdownSimple(refreshInfo.earliest), 
+            status: status, 
+            nextRefresh: refreshInfo.earliest 
+          };
+        } else if (now <= refreshInfo.latest) {
+          return { 
+            countdown: '刷新中', 
+            status: 'warning', 
+            nextRefresh: refreshInfo.earliest 
+          };
+        } else {
+          return { 
+            countdown: '已过期', 
+            status: 'expired', 
+            nextRefresh: refreshInfo.earliest 
+          };
+        }
+      }
+    }
+
+    // 格式化倒计时
+    function formatCountdownSimple(targetTime) {
+      if (!targetTime) return '---';
+      
+      const now = new Date();
+      const diff = targetTime - now;
+
+      if (diff <= 0) {
+        return '00:00:00';
+      }
+
+      const totalSeconds = Math.floor(diff / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    // 格式化刷新时间显示
+    function formatRefreshTimeDisplay(boss) {
+      if (!boss.lastKillTime) return '未记录击杀';
+      
+      const refreshInfo = calculateRefreshTime(boss);
+      
+      if (!refreshInfo.hasRange) {
+        const refreshTime = refreshInfo.refreshTime.toLocaleTimeString('zh-CN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        const indicator = boss.accuracy === 'accurate' ? '（准）' : '（估）';
+        return `${refreshTime}${indicator}`;
+      } else {
+        const earliestTime = refreshInfo.earliest.toLocaleTimeString('zh-CN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        const latestTime = refreshInfo.latest.toLocaleTimeString('zh-CN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+        const indicator = boss.accuracy === 'accurate' ? '（准）' : '（估）';
+        return `${earliestTime} - ${latestTime}${indicator}`;
+      }
+    }
+
+    // 渲染 Boss 列表
+    function renderBossList() {
+      const now = new Date();
+      document.getElementById('currentTime').textContent = `当前时间：${now.toLocaleString('zh-CN', { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false 
+      })}`;
+
+      const content = document.getElementById('bossListContent');
+      
+      if (bosses.length === 0) {
+        content.innerHTML = `
+          <div class="empty-state">
+            <h3>暂无 Boss 数据</h3>
+            <p>正在从服务器加载数据...</p>
+          </div>
+        `;
+        return;
+      }
+
+      // 计算每个 Boss 的状态和排序权重
+      const bossWithStatus = bosses.map(boss => {
+        const countdownInfo = getCurrentCountdownStatus(boss);
+        const refreshInfo = calculateRefreshTime(boss);
+        
+        let sortWeight;
+        if (!boss.lastKillTime) {
+          sortWeight = Infinity;
+        } else if (countdownInfo.status === 'warning') {
+          sortWeight = 0;
+        } else {
+          const nextRefresh = refreshInfo.hasRange ? refreshInfo.earliest : refreshInfo.refreshTime;
+          sortWeight = nextRefresh ? nextRefresh.getTime() : Infinity;
+        }
+        
+        return { 
+          ...boss, 
+          ...countdownInfo, 
+          sortWeight 
+        };
+      });
+
+      // 按排序权重升序排列
+      bossWithStatus.sort((a, b) => a.sortWeight - b.sortWeight);
+
+      content.innerHTML = bossWithStatus.map(boss => {
+        const intervalText = boss.interval === 1 ? '1h' : `${boss.interval}h`;
+        const delayText = boss.delay === 0 ? '' : `±${boss.delay}m`;
+        const configText = delayText ? `${intervalText}，${delayText}` : intervalText;
+        const nameConfig = `${boss.name}（间隔${configText}）`;
+        
+        const lastKillText = boss.lastKillTime ? 
+          `击杀: ${new Date(boss.lastKillTime).toLocaleTimeString('zh-CN', {hour12: false})}` : 
+          '';
+          
+        const refreshTimeText = formatRefreshTimeDisplay(boss);
+        
+        const accuracyClass = boss.accuracy === 'accurate' ? 'accuracy-accurate' : 'accuracy-estimate';
+        const accuracyText = boss.accuracy === 'accurate' ? '准' : '估';
+        const accuracyIndicator = boss.lastKillTime ? `<span class="accuracy-indicator ${accuracyClass}">${accuracyText}</span>` : '';
+          
+        return `
+        <div class="boss-item">
+          <div class="boss-info">
+            <div class="boss-header">
+              <div class="boss-category ${boss.category}">${boss.category}</div>
+              <div class="boss-name-config">${nameConfig}${accuracyIndicator}</div>
+            </div>
+            ${lastKillText ? `<div class="last-kill">${lastKillText}</div>` : ''}
+          </div>
+          <div class="refresh-countdown">
+            <div class="refresh-time">${refreshTimeText}</div>
+            <div class="countdown ${boss.status}">${boss.countdown}</div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-warning" onclick="recordCurrentKill(${boss.id})">快速记录</button>
+            <button class="btn btn-primary" onclick="openTimeModal(${boss.id})">手动记录</button>
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    // 记录当前时间击杀
+    async function recordCurrentKill(id) {
+      const success = await recordKill(id);
+      if (success) {
+        renderBossList();
+      } else {
+        alert('记录失败，请检查网络连接');
+      }
+    }
+
+    // 打开时间输入模态框
+    function openTimeModal(bossId) {
+      currentEditingBossId = bossId;
+      const modal = document.getElementById('timeModal');
+      const dateTimeInput = document.getElementById('modalDateTime');
+      
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      dateTimeInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+      
+      document.getElementById('modalAccuracyAccurate').checked = true;
+      
+      modal.style.display = 'block';
+    }
+
+    // 关闭模态框
+    function closeModal() {
+      document.getElementById('timeModal').style.display = 'none';
+      currentEditingBossId = null;
+    }
+
+    // 保存模态框中的时间
+    async function saveModalTime() {
+      const dateTimeInput = document.getElementById('modalDateTime');
+      const accuracy = document.querySelector('input[name="modalAccuracy"]:checked').value;
+      
+      if (!dateTimeInput.value) {
+        alert('请选择时间');
+        return;
+      }
+      
+      const selectedDateTime = new Date(dateTimeInput.value);
+      if (isNaN(selectedDateTime.getTime())) {
+        alert('时间格式不正确');
+        return;
+      }
+      
+      const success = await recordKill(currentEditingBossId, selectedDateTime.toISOString(), accuracy);
+      if (success) {
+        closeModal();
+        renderBossList();
+      } else {
+        alert('保存失败，请检查网络连接');
+      }
+    }
+
+    // 实时更新
+    async function startTimer() {
+      await fetchBosses();
+      renderBossList();
+      setInterval(renderBossList, 1000);
+      
+      // 每30秒同步一次服务器数据
+      setInterval(async () => {
+        await fetchBosses();
+        renderBossList();
+      }, 30000);
+      
+      updateCombatTimerDisplay();
+    }
+
+    // 页面加载
+    window.addEventListener('load', () => {
+      startTimer();
+    });
+
+    // 点击模态框外部关闭
+    window.onclick = function(event) {
+      const modal = document.getElementById('timeModal');
+      if (event.target === modal) {
+        closeModal();
+      }
+    }
+  </script>
+</body>
+</html>

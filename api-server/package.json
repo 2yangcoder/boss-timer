@@ -1,0 +1,25 @@
+{
+  "name": "boss-timer-api",
+  "version": "1.0.0",
+  "description": "Boss计时器API服务 - 多人共享数据",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.22.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "boss",
+    "timer",
+    "api",
+    "game"
+  ],
+  "author": "Boss Timer",
+  "license": "MIT"
+}
